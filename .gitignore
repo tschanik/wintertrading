@@ -1,0 +1,5 @@
+# ignore config file
+#*.ini
+
+# ignore REST_API
+comdirect_REST_API_Postman_Collection.json
