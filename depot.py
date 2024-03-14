@@ -221,7 +221,11 @@ def post_validation(url,order_body,access_token,guid_var,request_var,cookie,i):
 		response = requests.post(url, headers=headers, data=payload)
 
 		if (order_body["side"] == "BUY") and (i == 1):
-			print(response.headers['X-Http-Response-Info'])
+			# wenn die Erfahrung nicht ausreicht, steht dies in response-info
+			try:
+				print(response.headers['X-Http-Response-Info'])
+			except:
+				print('X-Http-Response-Info is empty')
 		
 		response = response.headers['x-once-authentication-info'][7:16]
 	else:
@@ -269,7 +273,7 @@ def get_order_status(order_ID,access_token,guid_var,request_var,cookie):
 def make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i):
 
 	validation_urls = ["https://api.comdirect.de/api/brokerage/v3/orders/prevalidation","https://api.comdirect.de/api/brokerage/v3/orders/validation", "https://api.comdirect.de/api/brokerage/v3/orders/costindicationexante"]
-
+	print("Ordertype: " + order_body["side"])
 	for url in validation_urls:
 		vali = post_validation(url,order_body,access_token,guid_var,request_var,cookie,i)
 		# neue validation ID zum ausführen einer Order
@@ -288,7 +292,7 @@ def make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i):
 	
 	order_return = post_order(order_body,access_token,guid_var,request_var,vali_ID,cookie)
 	order_ID = order_return["orderId"]
-	print("Ordertype: " + order_body["side"])
+	
 	print("creationTimestamp: " + order_return["creationTimestamp"])
  
 	order_status = get_order_status(order_ID,access_token,guid_var,request_var,cookie)
