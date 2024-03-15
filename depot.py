@@ -348,9 +348,9 @@ while i <= trades:
     print("-------------------------------------------")
     
     # session expires in 10 minutes
-    #refresh_re = refresh(client_id,client_secret,refresh_token).json()
-    
-    #access_token = refresh_re["access_token"]
-    #refresh_token = refresh_re["refresh_token"]
+    refresh_re = refresh(client_id,client_secret,refresh_token).json()
+    # get new access token
+    access_token = refresh_re["access_token"]
+    refresh_token = refresh_re["refresh_token"]
     
     #get_depot(depotUUID,access_token,guid_var,request_var,cookie)
