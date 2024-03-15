@@ -300,10 +300,11 @@ def make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i):
 		print("orderStatus: " + order_status["orderStatus"])
 		order_status = get_order_status(order_ID,access_token,guid_var,request_var,cookie)
 	
+	price = int(order_status["executions"][0]["executedQuantity"]["value"]) * float(order_status["executions"][0]["executionPrice"]["value"])
 	print("executionTimestamp: " + order_status["executions"][0]["executionTimestamp"])
-	print("executionPrice: " + str(int(order_status["executions"][0]["executedQuantity"]["value"]) * float(order_status["executions"][0]["executionPrice"]["value"])))
+	print("executionPrice: " + str(price))
 	
-	return 1
+	return price
 
 
 
@@ -337,20 +338,23 @@ print("Hier deine Info:")
 get_depot(depotUUID,access_token,guid_var,request_var,cookie)
 
 i = 1
+delta = 0
 while i <= trades:
     
-    print("Trade: " + str(i))
-    order_body = body(depotUUID,wkn,"BUY",amount)
-    make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i)
-    order_body = body(depotUUID,wkn,"SELL",amount)
-    make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i)
-    i = i + 1
-    print("-------------------------------------------")
-    
+	print("Trade: " + str(i))
+	order_body = body(depotUUID,wkn,"BUY",amount)
+	price_buy = make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i)
+	order_body = body(depotUUID,wkn,"SELL",amount)
+	price_sell = make_order(order_body,access_token,guid_var,request_var,vali_ID,cookie,i)
+	delta = delta + (price_sell - price_buy)
+	i = i + 1
+	print("-------------------------------------------")
+	print("Gewinn/Verlust: " + str(delta) + " EUR")
+	print("-------------------------------------------")
     # session expires in 10 minutes
-    refresh_re = refresh(client_id,client_secret,refresh_token).json()
-    # get new access token
-    access_token = refresh_re["access_token"]
-    refresh_token = refresh_re["refresh_token"]
-    
+	refresh_re = refresh(client_id,client_secret,refresh_token).json()
+	# get new access token
+	access_token = refresh_re["access_token"]
+	refresh_token = refresh_re["refresh_token"]
+
     #get_depot(depotUUID,access_token,guid_var,request_var,cookie)
