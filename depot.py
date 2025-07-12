@@ -1,17 +1,20 @@
-import os
 import configparser
 import requests
 import json
 import uuid
 import time
+from datetime import datetime
 
 
 def get_cookie():
-	
-	url = "https://comdirect.de"
-	r = requests.get(url)
+	"""
+    Erzeugt den String für den x-http-request-info Header.
+	"""
+	session_id = uuid.uuid4().hex  # Generiert eine 32-stellige Hex-UUID
+	# HHmmssSSS (StundeMinuteSekundeMillisekunde), auf 9 Stellen gekürzt
+	request_id = datetime.now().strftime("%H%M%S%f")[:9]
 	s = "qSession"
-	return s + "=" + dict(r.cookies)[s]
+	return s + "=" + session_id
 
 
 def check_status(access_token,guid_var,request_var,cookie):
