@@ -8,7 +8,7 @@ from datetime import datetime
 
 def get_cookie():
 	"""
-    Erzeugt den String für den x-http-request-info Header.
+	Erzeugt den String für den x-http-request-info Header.
 	"""
 	session_id = uuid.uuid4().hex  # Generiert eine 32-stellige Hex-UUID
 	# HHmmssSSS (StundeMinuteSekundeMillisekunde), auf 9 Stellen gekürzt
@@ -174,6 +174,38 @@ def get_depot(depotUUID,access_token,guid_var,request_var,cookie):
 	}
 	
 	response = requests.request("GET", url, headers=headers, data=payload).json()
+
+	for i in range(len(response['values'])):
+		wkn = response["values"][i]["wkn"]
+		wkn_info = requests.request("GET", "https://api.comdirect.de/api/brokerage/v1/instruments/" + wkn, headers=headers, data=payload).json()
+		# print(wkn_info)
+		name = wkn_info["values"][0]["name"]
+		short_name = wkn_info["values"][0]["shortName"]
+		sector = wkn_info["values"][0]["staticData"].get("sector","")
+		instrument_type = wkn_info["values"][0]["staticData"]["instrumentType"]
+		amount = float(response["values"][i]["quantity"]["value"])
+		current_value = float(response["values"][i]["currentValue"]["value"])
+		unit = response["values"][i]["currentValue"]["unit"]
+		profit_loss = float(response["values"][i]["profitLossPurchaseAbs"]["value"])
+		sell_possible = response["values"][i]["sellPossible"]
+		#ausgabe = 'WKN: {} Sektor: {} Kurzname: {} Typ: {} Anzahl: {} Wert: {} {} Entwicklung: {} {} Verkaufbar: {}'.format(wkn, sector, short_name, type, amount,current_value,unit,profit_loss,unit,sell_possible)
+		#print(ausgabe)
+		# --- Formatierung der Ausgabe ---
+		profit_loss_color = "\033[92m" if profit_loss >= 0 else "\033[91m" # Grün für Gewinn, Rot für Verlust
+		reset_color = "\033[0m" # Farbe zurücksetzen
+
+		sell_status = "✅ Ja" if sell_possible else "❌ Nein"
+
+		# Ausgabe für jedes Wertpapier
+		print(f"--- Wertpapier: {short_name} ---")
+		print(f"  WKN: {wkn}")
+		print(f"  Typ: {instrument_type}")
+		print(f"  Sektor: {sector}")
+		print(f"  Anzahl: {amount:,.2f}") # Formatiert als Zahl mit 2 Dezimalstellen
+		print(f"  Aktueller Wert: {current_value:,.2f} {unit}")
+		print(f"  Entwicklung (Absolut): {profit_loss_color}{profit_loss:,.2f} {unit}{reset_color}")
+		print(f"  Verkaufbar: {sell_status}")
+		print("-" * 40 + "\n") # Trennlinie für bessere Lesbarkeit
 	
 	change = response["aggregated"]["profitLossPrevDayAbs"]["value"]
 	unit = response["aggregated"]["profitLossPrevDayAbs"]["unit"]
@@ -181,7 +213,7 @@ def get_depot(depotUUID,access_token,guid_var,request_var,cookie):
 	print('Depoveränderung heute: ' + change + ' ' + unit + ' (' + rel + ' %)')
 	
 	response_accounts = requests.request("GET", url_account_info, headers=headers, data=payload).json()
-	for i in range(3):
+	for i in range(len(response_accounts['values'])):
 		name = response_accounts['values'][i]['account']['accountType']['text']
 		value = response_accounts['values'][i]['balance']['value']
 		unit = response_accounts['values'][i]['balance']['unit']
